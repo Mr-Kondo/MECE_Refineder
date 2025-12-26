@@ -1,2 +1,2 @@
 ﻿total_documents,n_clusters,coverage,noise_documents,llm_backend,llm_model
-20,4,0.35,13,N/A,N/A
+20,4,0.35,13,ollama,qwen2.5:7b

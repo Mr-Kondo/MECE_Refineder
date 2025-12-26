@@ -50,17 +50,28 @@ class OllamaBackend(LLMBackend):
             # 接続テスト
             self.client.list()
 
-            # モデルの存在確認
-            models = self.client.list()
-            model_names = [m["name"] for m in models.get("models", [])]
+            # モデルの存在確認（返却形に頑健）
+            try:
+                resp = self.client.list()
+                items = resp.get("models", [])
+                model_names: List[str] = []
+                for m in items:
+                    if isinstance(m, dict):
+                        name = cast(Optional[str], m.get("name") or m.get("model") or m.get("id"))
+                        if name:
+                            model_names.append(name)
+                    elif isinstance(m, str):
+                        model_names.append(m)
+            except Exception:
+                model_names = []
 
             if self.model_name not in model_names:
-                print(f"  Warning: モデル '{self.model_name}' が見つかりません")
+                print(f"  Warning: モデル '{self.model_name}' が見つかりません（または一覧取得に失敗）")
                 print("  モデルをダウンロード中...")
                 self.client.pull(self.model_name)
                 print(f"  ダウンロード完了: {self.model_name}")
 
-            print(f"  Ollama接続成功: {model_name}")
+            print(f"  Ollama接続成功: {self.model_name}")
 
         except Exception as e:
             raise RuntimeError(
