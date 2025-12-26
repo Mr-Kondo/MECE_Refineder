@@ -1,0 +1,18 @@
+[project]
+name = "mece-refineder"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "hdbscan>=0.8.41",
+    "matplotlib>=3.10.8",
+    "numpy>=2.3.5",
+    "ollama>=0.6.1",
+    "pandas>=2.3.3",
+    "plotly>=6.5.0",
+    "scikit-learn>=1.8.0",
+    "sentence-transformers>=5.2.0",
+    "tqdm>=4.67.1",
+    "umap-learn>=0.5.9.post2",
+]
