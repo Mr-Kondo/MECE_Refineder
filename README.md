@@ -193,7 +193,10 @@ analyzer.load_documents(documents).run()
 | representative_sentence | 代表文(Medoid) |
 | llm_summary | LLMによる要約 |
 
-### 2. documents_with_clusters.csv
+### 2. cluster_summary.md
+各クラスタ要約のMarkdown版。人が読みやすい構造で、MECE指標サマリとクラスタごとの詳細（キーワード／代表文／LLM要約）を含みます。
+
+### 3. documents_with_clusters.csv
 各文書のクラスタ割り当て。
 
 | 列名 | 説明 |
@@ -203,7 +206,7 @@ analyzer.load_documents(documents).run()
 | cluster_hdbscan | HDBSCANクラスタID |
 | silhouette | 凝集度(個別) |
 
-### 3. cluster_overlaps.csv
+### 4. cluster_overlaps.csv
 クラスタ間の重複度(MECE違反候補)。
 
 | 列名 | 説明 |
@@ -212,13 +215,13 @@ analyzer.load_documents(documents).run()
 | cluster_B | クラスタBのID |
 | overlap | 重複度(クラスタ中心のコサイン類似度、0〜1) |
 
-### 4. mece_metadata.csv
+### 5. mece_metadata.csv
 全体の統計情報。
 
-### 5. mece_visualization.png
+### 6. mece_visualization.png
 4種類の可視化(PCA/UMAP × KMeans/HDBSCAN)。
 
-### 6. mece_interactive.html
+### 7. mece_interactive.html
 インタラクティブな散布図(凝集度を点サイズで表現)。
 
 ---

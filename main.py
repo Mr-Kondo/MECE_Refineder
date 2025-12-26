@@ -606,6 +606,63 @@ class MECEAnalyzer:
             # クラスタ要約
             assert self.df_summary is not None, "クラスタ要約が未生成です。summarize_clusters() を先に呼んでください。"
             self.df_summary.to_csv(self.config.output_dir / "cluster_summary.csv", index=False, encoding="utf-8-sig")
+
+            # Markdown版クラスタ要約も出力
+            try:
+                md_lines: List[str] = []
+                md_lines.append("# クラスタ要約")
+                md_lines.append("")
+                md_lines.append("## MECE指標")
+                md_lines.append(f"- 総文書数: {metrics.get('total_documents', len(self.documents))}")
+                md_lines.append(f"- クラスタ数: {metrics.get('n_clusters', self.config.n_clusters)}")
+                coverage = metrics.get("coverage", None)
+                if coverage is not None:
+                    try:
+                        md_lines.append(f"- カバレッジ: {float(coverage):.3f}")
+                    except Exception:
+                        md_lines.append(f"- カバレッジ: {coverage}")
+                md_lines.append(f"- ノイズ文書: {metrics.get('noise_documents', 0)}件")
+                md_lines.append("")
+
+                md_lines.append("## クラスタ詳細")
+                for _, row in self.df_summary.iterrows():
+                    md_lines.append("")
+                    md_lines.append(f"### クラスタ {row['cluster']}")
+                    md_lines.append(f"- 文書数: {row['size']}")
+                    cohesion = row.get("cohesion", None)
+                    if cohesion is not None and pd.notna(cohesion):
+                        try:
+                            md_lines.append(f"- 凝集度(Silhouette): {float(cohesion):.3f}")
+                        except Exception:
+                            md_lines.append(f"- 凝集度(Silhouette): {cohesion}")
+                    else:
+                        md_lines.append(f"- 凝集度(Silhouette): N/A")
+                    keywords = row.get("keywords", "N/A") or "N/A"
+                    md_lines.append(f"- キーワード: {keywords}")
+                    rep = row.get("representative_sentence", "N/A") or "N/A"
+                    md_lines.append(f"- 代表文: {rep}")
+                    llm = row.get("llm_summary", "N/A") or "N/A"
+                    md_lines.append(f"- LLM要約: {llm}")
+
+                # クラスタ間重複（存在する場合のみ）
+                overlaps_df = metrics.get("overlaps", pd.DataFrame())
+                if isinstance(overlaps_df, pd.DataFrame) and not overlaps_df.empty:
+                    md_lines.append("")
+                    md_lines.append("## クラスタ間重複")
+                    md_lines.append("| cluster_A | cluster_B | overlap |")
+                    md_lines.append("|---|---|---|")
+                    for _, r in overlaps_df.iterrows():
+                        try:
+                            ov = float(r["overlap"])
+                            md_lines.append(f"| {int(r['cluster_A'])} | {int(r['cluster_B'])} | {ov:.3f} |")
+                        except Exception:
+                            md_lines.append(f"| {r['cluster_A']} | {r['cluster_B']} | {r['overlap']} |")
+
+                md_path = self.config.output_dir / "cluster_summary.md"
+                with open(md_path, "w", encoding="utf-8") as f:
+                    f.write("\n".join(md_lines))
+            except Exception as e:
+                print(f"  Warning: Markdown要約の書き出しに失敗しました - {e}")
             pbar.update(1)
 
             # MECE指標
