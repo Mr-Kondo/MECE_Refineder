@@ -155,9 +155,12 @@ class TransformersBackend(LLMBackend):
 class MECEConfig:
     """MECE分析の設定パラメータ"""
 
-    # 埋め込みモデル
-    embedding_model: str = "intfloat/multilingual-e5-base"
+    # 埋め込みモデル(E5を使う場合: "intfloat/multilingual-e5-base")
+    embedding_model: str = "cl-nagoya/ruri-v3-310m"
     # 英語のみの場合: "all-MiniLM-L6-v2"
+
+    # 入力文の先頭に付ける接頭辞。None ならモデル名から決める(ruri-v3: "トピック: "、E5: "query: ")
+    embedding_prefix: Optional[str] = None
 
     # クラスタ数
     n_clusters: int = 3
@@ -207,6 +210,42 @@ class MECEConfig:
 
     # ランダムシード
     random_state: int = 42
+
+
+# =========================================================
+# 埋め込み・キーワード抽出の補助関数
+# =========================================================
+def _embedding_prefix(model_name: str, override: Optional[str]) -> str:
+    """埋め込みモデルが要求する入力の接頭辞(クラスタリング用)を返す"""
+    if override is not None:
+        return override
+    name = model_name.lower()
+    if "ruri-v3" in name:
+        return "トピック: "
+    if "-e5-" in name or "/e5-" in name:
+        return "query: "  # E5は接頭辞が必須。クラスタリングには query を使う
+    return ""
+
+
+def _make_tokenizer():
+    """TF-IDF用の日本語トークナイザ(SudachiPyで名詞だけを返す)"""
+    from sudachipy import Dictionary, SplitMode
+
+    tokenizer = Dictionary(dict="core").tokenizer(SplitMode.B)
+
+    def tokenize(text: str) -> List[str]:
+        words = []
+        for m in tokenizer.tokenize(text):
+            pos = m.part_of_speech()
+            if pos[0] != "名詞" or pos[1] in ("数詞", "代名詞", "非自立可能"):
+                continue
+            word = m.normalized_form()
+            if len(word) == 1 and word.isascii():
+                continue
+            words.append(word)
+        return words
+
+    return tokenize
 
 
 # =========================================================
@@ -270,7 +309,9 @@ class MECEAnalyzer:
         if len(self.documents) == 0:
             raise ValueError("文書が空です。'load_documents'で文書を設定してください。")
 
-        self.embeddings = self.model.encode(self.documents, show_progress_bar=True, normalize_embeddings=True, batch_size=32)
+        prefix = _embedding_prefix(self.config.embedding_model, self.config.embedding_prefix)
+        texts = [prefix + doc for doc in self.documents]
+        self.embeddings = self.model.encode(texts, show_progress_bar=True, normalize_embeddings=True, batch_size=32)
 
         print(f"  ベクトル形状: {self.embeddings.shape}")
         return self
@@ -387,7 +428,12 @@ class MECEAnalyzer:
             self._init_llm_backend()
 
         # TF-IDF計算
-        vectorizer = TfidfVectorizer(max_features=self.config.tfidf_max_features, ngram_range=self.config.tfidf_ngram_range)
+        vectorizer = TfidfVectorizer(
+            tokenizer=_make_tokenizer(),
+            token_pattern=None,
+            max_features=self.config.tfidf_max_features,
+            ngram_range=self.config.tfidf_ngram_range,
+        )
 
         try:
             tfidf = vectorizer.fit_transform(self.documents)
@@ -772,7 +818,7 @@ if __name__ == "__main__":
     # 設定
     config = MECEConfig(
         n_clusters=4,
-        embedding_model="intfloat/multilingual-e5-base",
+        embedding_model="cl-nagoya/ruri-v3-310m",
         use_llm_summary=True,
         llm_backend="ollama",
         llm_model_name="qwen2.5:7b",  # 実在するモデル

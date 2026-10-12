@@ -26,7 +26,8 @@
 
 ### 1. 意味ベクトル化
 - Sentence-BERTで文書を意味空間にマッピング
-- 日本語特化モデル(multilingual-e5-base)対応
+- 既定は日本語に強いruri-v3-310m(クラスタリング用の接頭辞`トピック: `を自動で付与)
+- multilingual-e5-baseにも対応(接頭辞`query: `を自動で付与)
 
 ### 2. 次元削減・可視化
 - PCA: 線形な主成分分析
@@ -37,7 +38,7 @@
 - HDBSCAN: 密度ベースの自動クラスタリング（正規化済み埋め込みに対して`euclidean`距離を使用）
 
 ### 4. クラスタ要約
-- TF-IDF: 代表キーワード抽出
+- TF-IDF: 代表キーワード抽出(SudachiPyで名詞に分割)
 - Medoid: 最も典型的な文書を選出
 - **ローカルLLM要約**: 各クラスタの「視点・観点」を自然言語で要約
    - LLMの初期化は要約生成時に遅延実行されます（起動時間短縮）。初期化に失敗した場合は自動でスキップされ、`use_llm_summary=False`として処理が続行されます。
@@ -57,16 +58,19 @@
 
 ### 必須要件
 
-- Python 3.8以上
+- Python 3.13以上
 - 8GB以上のRAM(推奨: 16GB以上)
 - Ollama(ローカルLLM要約を使う場合)
 
 ### ライブラリのインストール
 
+依存関係は`pyproject.toml`と`uv.lock`で管理しています。
+
 ```bash
-pip install sentence-transformers scikit-learn umap-learn hdbscan \
-    pandas numpy matplotlib plotly tqdm ollama
+uv sync
 ```
+
+初回の実行時に、埋め込みモデル(ruri-v3-310m、約1.2GB)がダウンロードされます。
 
 ### Ollamaのインストール(LLM要約を使う場合)
 
@@ -233,7 +237,8 @@ analyzer.load_documents(documents).run()
 ```python
 config = MECEConfig(
     # 埋め込みモデル
-    embedding_model="intfloat/multilingual-e5-base",
+    embedding_model="cl-nagoya/ruri-v3-310m",
+    embedding_prefix=None,  # Noneならモデル名から自動判定(ruri-v3: "トピック: "、E5: "query: ")
     
     # クラスタ数
     n_clusters=5,
@@ -524,6 +529,7 @@ MECE判断支援指標計算
 - **KMeans**: 分割最適化クラスタリング
 - **HDBSCAN**: 密度ベースクラスタリング
 - **TF-IDF**: キーワード抽出
+- **SudachiPy**: 日本語の形態素解析(TF-IDFの語の分割)
 - **Cosine Similarity**: 類似度計算
 - **Silhouette係数**: クラスタ品質評価
 - **コサイン類似度(クラスタ中心間)**: クラスタ間の重複度推定
@@ -551,6 +557,8 @@ MIT License
 - [UMAP](https://umap-learn.readthedocs.io/)
 - [HDBSCAN](https://hdbscan.readthedocs.io/)
 - [Ollama](https://ollama.com/)
+- [Ruri](https://huggingface.co/cl-nagoya/ruri-v3-310m)
+- [SudachiPy](https://github.com/WorksApplications/SudachiPy)
 
 ---
 
@@ -560,4 +568,4 @@ MIT License
 
 ---
 
-**最終更新**: 2025年12月27日
+**最終更新**: 2026年10月12日
