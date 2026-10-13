@@ -353,8 +353,10 @@ config = MECEConfig(
 
 ### Q1. `ModuleNotFoundError: No module named 'ollama'`
 
+`ollama` は `pyproject.toml` に含まれています。依存関係を同期してください。
+
 ```bash
-pip install ollama
+uv sync
 ```
 
 ### Q2. `Ollama接続エラー`

@@ -23,7 +23,7 @@ import plotly.express as px
 from tqdm.auto import tqdm
 
 plt.rcParams["font.family"] = "sans-serif"
-plt.rcParams["font.sans-serif"] = ["Hiragino Sans", "Yu Gothic", "Meirio"]
+plt.rcParams["font.sans-serif"] = ["Hiragino Sans", "Yu Gothic", "Meiryo"]
 
 
 # =========================================================
