@@ -14,6 +14,8 @@
 - Python 3.13または3.14の最新パッチ版（3.13.17 / 3.14.9）
 - [uv](https://docs.astral.sh/uv/)
 
+uvがまだインストールされていない場合は、[公式インストール手順](https://docs.astral.sh/uv/getting-started/installation/)からOSに合った方法で導入してください。
+
 `.python-version`は既定で3.14.9を選びます。3.13系列を使う場合は、同期時に`uv sync --python 3.13.17`を実行し、以降のコマンドも`uv run --python 3.13.17 ...`の形にします。Pythonの最新リリースは[公式ダウンロード一覧](https://www.python.org/downloads/)で確認できます。
 
 プロジェクトのフォルダで次のコマンドを実行します。依存関係は`uv.lock`に記録したバージョンで`.venv/`に入ります。

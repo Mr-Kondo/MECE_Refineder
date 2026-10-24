@@ -185,22 +185,38 @@ export TOKENIZERS_PARALLELISM=false
 
 ## 🧩 VS Code設定のヒント（Problemsの低減）
 
-IDEの型チェックがグローバルのPythonを見ていると、未インストールの依存関係で「Problems」が多数表示されることがあります。
-ワークスペースの仮想環境を指定しましょう。
+VS CodeのPython拡張機能がグローバル環境を使っていると、このプロジェクトの依存関係を認識できず、Problemsに診断が表示されることがあります。プロジェクトの仮想環境を使うよう設定します。
 
-1. VS Codeのワークスペース設定に次を追加します。
+`uv` が未導入の場合は、[操作ガイドの環境構築](docs/operation-guide.md)にある公式インストール手順から導入します。
+
+1. 初めて使う場合はリポジトリを取得します。すでにクローン済みの場合は、リポジトリのルートで `git pull` を実行します。
+
+   ```bash
+   git clone https://github.com/Mr-Kondo/MECE_Refineder.git
+   cd MECE_Refineder
+   ```
+
+   初回・更新時のどちらも、プロジェクトのルートで依存関係を同期します。
+
+   ```bash
+   uv sync
+   ```
+
+2. VS Codeで `Python: Select Interpreter` を実行し、このプロジェクトの `.venv` を選びます。新しい環境での既定値も設定する場合は、ワークスペース設定（`.vscode/settings.json`）に次を追加します。
 
    ```json
    {
-      "python.defaultInterpreterPath": ".venv/bin/python"
+     "python.defaultInterpreterPath": "${workspaceFolder}/.venv"
    }
    ```
 
-2. 型チェックとリントを実行します。
+   `python.defaultInterpreterPath` は初期設定に使われる値です。すでに別のインタープリターを選択済みの場合は、`Python: Select Interpreter` で `.venv` に切り替えてください。
+
+3. PyrightとRuffによる型チェックとリントをターミナルで実行する場合は、プロジェクトのルートで次を実行します。どちらも開発依存関係としてプロジェクト環境に同期されています。
 
    ```bash
-   uvx pyright
-   uvx ruff check
+   uv run pyright
+   uv run ruff check
    ```
 
 ---
