@@ -236,4 +236,4 @@ uv run python test_main_helpers.py
 | メモリ不足 | 上の「設定を調整する」表を参照する。 |
 | 日本語が図で文字化けする | `main.py` の `plt.rcParams` のフォント設定を、自分の環境にあるフォントに変える。 |
 
-そのほかの問題は、[README](../README.md) の「トラブルシューティング」も参照してください。
+解決しない場合は[GitHub Issues](https://github.com/Mr-Kondo/MECE_Refineder/issues)で報告してください。
